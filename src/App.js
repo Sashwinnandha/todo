@@ -16,15 +16,21 @@ import {
   Box,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import RemoveIcon from '@mui/icons-material/Remove';
+import TuneIcon from '@mui/icons-material/Tune';
+import Filter from './Filter.tsx';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState('');
+  const [dialog,setDialog]=useState(false);
+  const[date,setDate]=useState(new Date().toDateString());
 
   const handleAddTask = () => {
   if (input.trim()) {
-    const newTask = { text: input, completed: false };
-    axios.post('https://todo-backend-abxd.onrender.com/tasks', newTask)
+    const date=new Date().toDateString();
+    const newTask = { text: input, completed: false,date };
+    axios.post('http://localhost:5000/tasks', newTask)
       .then(res => setTasks([...tasks, res.data]))
       .catch(err => console.error(err));
     setInput('');
@@ -35,7 +41,7 @@ function App() {
     const updatedTasks = [...tasks];
     updatedTasks[index].completed = !updatedTasks[index].completed;
     const status=updatedTasks[index].completed
-    axios.post('https://todo-backend-abxd.onrender.com/task', {index,status})
+    axios.post('http://localhost:5000/task', {index,status})
       .then(res => console.log(res))
       .catch(err => console.error(err));
     setTasks(updatedTasks);
@@ -43,30 +49,45 @@ function App() {
 
   const handleDelete=(index)=>{
     const newTasks=Object.values(tasks).filter((each,eachIndex)=>eachIndex!==index);
-    axios.post('https://todo-backend-abxd.onrender.com/taskid', {index})
+    axios.post('http://localhost:5000/taskid', {index})
       .then(res => console.log(res))
       .catch(err => console.error(err));
     setTasks(newTasks)
   }
 
+  const handleFilter=()=>{
+    setDialog(prev=>!prev)
+  }
+
 
   useEffect(() => {
-  axios.get('https://todo-backend-abxd.onrender.com/tasks')
+  axios.get('http://localhost:5000/tasks')
     .then(res => setTasks(res.data))
     .catch(err => console.error(err));
 }, []);
 
   return (
+    <>
     <Container maxWidth="sm" sx={{ mt: 5 }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h4" align="center" gutterBottom>
-          To-Do List
+          To-Do Tracker
         </Typography>
-
+         <Box display="flex" sx={{justifyContent:"space-between"}} gap={2} mb={1}>
+          <b>{date}</b>
+          <Button
+            variant="text"
+            color="primary"
+            onClick={handleFilter}
+            startIcon={<TuneIcon />}
+          >
+            Filters
+          </Button>
+         </Box>
         <Box display="flex" gap={2} mb={3}>
           <TextField
             fullWidth
-            label="New task"
+            label="Add task"
             variant="outlined"
             value={input}
             onChange={(e) => setInput(e.target.value)}
@@ -99,8 +120,9 @@ function App() {
               <Button
             variant="contained"
             color="error"
+             size="small"
             onClick={()=>handleDelete(index)}
-            startIcon={<AddIcon />}
+            startIcon={<RemoveIcon />}
           >
             Delete
           </Button>
@@ -109,6 +131,8 @@ function App() {
         </List>
       </Paper>
     </Container>
+    {dialog&& <Filter dialog={dialog} setDialog={setDialog} />}
+    </>
   );
 }
 
