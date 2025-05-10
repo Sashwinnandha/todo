@@ -24,7 +24,7 @@ function App() {
   const handleAddTask = () => {
   if (input.trim()) {
     const newTask = { text: input, completed: false };
-    axios.post('http://localhost:5000/tasks', newTask)
+    axios.post('https://todo-backend-abxd.onrender.com/tasks', newTask)
       .then(res => setTasks([...tasks, res.data]))
       .catch(err => console.error(err));
     setInput('');
@@ -35,7 +35,7 @@ function App() {
     const updatedTasks = [...tasks];
     updatedTasks[index].completed = !updatedTasks[index].completed;
     const status=updatedTasks[index].completed
-    axios.post('http://localhost:5000/task', {index,status})
+    axios.post('https://todo-backend-abxd.onrender.com/task', {index,status})
       .then(res => console.log(res))
       .catch(err => console.error(err));
     setTasks(updatedTasks);
@@ -43,7 +43,7 @@ function App() {
 
   const handleDelete=(index)=>{
     const newTasks=Object.values(tasks).filter((each,eachIndex)=>eachIndex!==index);
-    axios.post('http://localhost:5000/taskid', {index})
+    axios.post('https://todo-backend-abxd.onrender.com/taskid', {index})
       .then(res => console.log(res))
       .catch(err => console.error(err));
     setTasks(newTasks)
@@ -51,7 +51,7 @@ function App() {
 
 
   useEffect(() => {
-  axios.get('http://localhost:5000/tasks')
+  axios.get('https://todo-backend-abxd.onrender.com/tasks')
     .then(res => setTasks(res.data))
     .catch(err => console.error(err));
 }, []);
