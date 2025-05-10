@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 import Dialog from '@mui/material/Dialog';
@@ -6,26 +5,36 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 import DialogContentText from '@mui/material/DialogContentText';
 import DialogTitle from '@mui/material/DialogTitle';
+import { createDateFilter } from './Helper';
 
-function Filter({dialog,setDialog}){
+function Filter({dialog,setDialog,setDate}){
 
-  const today = new Date().toISOString().split('T')[0]; // "YYYY-MM-DD"
+  const tomorrow = new Date();
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const formattedTomorrow = tomorrow.toISOString().split('T')[0]; // "YYYY-MM-DD"
 
-   const handleClose = (event,reason) => {
-    if(reason!="backdropClick"){
+   const handleClose = () => {
       setDialog(false);
-    }
-    
   };
     return(
         <Dialog
         open={dialog}
-        onClose={(event,reason)=>handleClose(event,reason)}
+        onClose={(event,reason)=>{
+          if(reason!=="backdropClick"){
+      setDialog(false);
+    }
+        }}
         slotProps={{
           paper: {
             component: 'form',
             onSubmit: (event) => {
               event.preventDefault();
+              const formData = new FormData(event.currentTarget);
+              const formJson = Object.fromEntries(formData.entries());
+              const date = formJson.date;
+              const newDate=createDateFilter(date)
+              setDate(newDate)
+              handleClose()
             },
           },
         }}
@@ -45,7 +54,7 @@ function Filter({dialog,setDialog}){
             fullWidth
             variant="standard"
             inputProps={{
-        max: today, 
+              max:formattedTomorrow,
         min:"2025-05-08"
       }}
           />

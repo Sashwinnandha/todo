@@ -1,4 +1,3 @@
-import logo from './logo.svg';
 import './App.css';
 import React, { useState } from 'react';
 import { useEffect } from 'react';
@@ -19,18 +18,18 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import TuneIcon from '@mui/icons-material/Tune';
 import Filter from './Filter.tsx';
+import { createDate } from './Helper.js';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState('');
   const [dialog,setDialog]=useState(false);
-  const[date,setDate]=useState(new Date().toDateString());
+  const[date,setDate]=useState(createDate(new Date()));
 
   const handleAddTask = () => {
   if (input.trim()) {
-    const date=new Date().toDateString();
     const newTask = { text: input, completed: false,date };
-    axios.post('https://todo-backend-abxd.onrender.com/tasks', newTask)
+    axios.post('https://todo-backend-abxd.onrender.com/newtask', newTask)
       .then(res => setTasks([...tasks, res.data]))
       .catch(err => console.error(err));
     setInput('');
@@ -61,10 +60,11 @@ function App() {
 
 
   useEffect(() => {
-  axios.get('https://todo-backend-abxd.onrender.com/tasks')
+    console.log(date)
+  axios.post('https://todo-backend-abxd.onrender.com/tasks',{date})
     .then(res => setTasks(res.data))
     .catch(err => console.error(err));
-}, []);
+}, [date]);
 
   return (
     <>
@@ -74,7 +74,9 @@ function App() {
           To-Do Tracker
         </Typography>
          <Box display="flex" sx={{justifyContent:"space-between"}} gap={2} mb={1}>
-          <b>{date}</b>
+           <Box component="section" sx={{color:"#1976d2",fontWeight:"bold"}}>
+          {date}
+        </Box>
           <Button
             variant="text"
             color="primary"
@@ -97,6 +99,7 @@ function App() {
             color="primary"
             onClick={handleAddTask}
             startIcon={<AddIcon />}
+            disabled={input===""}
           >
             Add
           </Button>
@@ -131,7 +134,7 @@ function App() {
         </List>
       </Paper>
     </Container>
-    {dialog&& <Filter dialog={dialog} setDialog={setDialog} />}
+    {dialog&& <Filter dialog={dialog} setDialog={setDialog} setDate={setDate} />}
     </>
   );
 }
