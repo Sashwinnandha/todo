@@ -1,6 +1,8 @@
 import logo from './logo.svg';
 import './App.css';
 import React, { useState } from 'react';
+import { useEffect } from 'react';
+import axios from 'axios';
 import {
   Container,
   TextField,
@@ -20,17 +22,39 @@ function App() {
   const [input, setInput] = useState('');
 
   const handleAddTask = () => {
-    if (input.trim()) {
-      setTasks([...tasks, { text: input, completed: false }]);
-      setInput('');
-    }
-  };
+  if (input.trim()) {
+    const newTask = { text: input, completed: false };
+    axios.post('http://localhost:5000/tasks', newTask)
+      .then(res => setTasks([...tasks, res.data]))
+      .catch(err => console.error(err));
+    setInput('');
+  }
+};
 
   const handleToggle = (index) => {
     const updatedTasks = [...tasks];
     updatedTasks[index].completed = !updatedTasks[index].completed;
+    const status=updatedTasks[index].completed
+    axios.post('http://localhost:5000/task', {index,status})
+      .then(res => console.log(res))
+      .catch(err => console.error(err));
     setTasks(updatedTasks);
   };
+
+  const handleDelete=(index)=>{
+    const newTasks=Object.values(tasks).filter((each,eachIndex)=>eachIndex!==index);
+    axios.post('http://localhost:5000/taskid', {index})
+      .then(res => console.log(res))
+      .catch(err => console.error(err));
+    setTasks(newTasks)
+  }
+
+
+  useEffect(() => {
+  axios.get('http://localhost:5000/tasks')
+    .then(res => setTasks(res.data))
+    .catch(err => console.error(err));
+}, []);
 
   return (
     <Container maxWidth="sm" sx={{ mt: 5 }}>
@@ -62,16 +86,24 @@ function App() {
             <ListItem
               key={index}
               disablePadding
-              sx={{
-                textDecoration: task.completed ? 'line-through' : 'none',
-                color: task.completed ? 'gray' : 'inherit',
-              }}
+             
             >
               <Checkbox
                 checked={task.completed}
                 onChange={() => handleToggle(index)}
               />
-              <ListItemText primary={task.text} />
+              <ListItemText primary={task.text}  sx={{
+                textDecoration: task.completed ? 'line-through' : 'none',
+                color: task.completed ? 'gray' : 'inherit',
+              }} />
+              <Button
+            variant="contained"
+            color="error"
+            onClick={()=>handleDelete(index)}
+            startIcon={<AddIcon />}
+          >
+            Delete
+          </Button>
             </ListItem>
           ))}
         </List>
