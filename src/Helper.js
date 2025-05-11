@@ -14,3 +14,7 @@ export const createDateFilter=(date)=>{
     const month=getFullMonth(parseInt(date.split("-")[1]-1));
     return date.split("-")[2]+"-"+month+"-"+date.split("-")[0];
 }
+
+export const checkValidDate=(date)=>{
+    return new Date(date)<=new Date()
+}
