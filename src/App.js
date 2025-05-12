@@ -36,19 +36,23 @@ function App() {
   }
 };
 
-  const handleToggle = (index) => {
-    const updatedTasks = [...tasks];
-    updatedTasks[index].completed = !updatedTasks[index].completed;
-    const status=updatedTasks[index].completed
-    axios.post('https://todo-backend-abxd.onrender.com/task', {index,status})
+console.log(tasks)
+
+  const handleToggle = (_id) => {
+    const indexs = tasks.findIndex(e=>e._id===_id);
+     const updatedTasks = [...tasks];
+    updatedTasks[indexs].completed = !updatedTasks[indexs].completed;
+    const status=updatedTasks[indexs].completed
+    console.log(indexs)
+    axios.post('https://todo-backend-abxd.onrender.com/task', {_id,status})
       .then(res => console.log(res))
       .catch(err => console.error(err));
     setTasks(updatedTasks);
   };
 
-  const handleDelete=(index)=>{
-    const newTasks=Object.values(tasks).filter((each,eachIndex)=>eachIndex!==index);
-    axios.post('https://todo-backend-abxd.onrender.com/taskid', {index})
+  const handleDelete=(_id)=>{
+    const newTasks=tasks.filter((each)=>each._id!==_id);
+    axios.post('https://todo-backend-abxd.onrender.com/taskid', {_id})
       .then(res => console.log(res))
       .catch(err => console.error(err));
     setTasks(newTasks)
@@ -60,7 +64,6 @@ function App() {
 
 
   useEffect(() => {
-    console.log(date)
   axios.post('https://todo-backend-abxd.onrender.com/tasks',{date})
     .then(res => setTasks(res.data))
     .catch(err => console.error(err));
@@ -114,7 +117,7 @@ function App() {
             >
               <Checkbox
                 checked={task.completed}
-                onChange={() => handleToggle(index)}
+                onChange={() => handleToggle(task._id)}
               />
               <ListItemText primary={task.text}  sx={{
                 textDecoration: task.completed ? 'line-through' : 'none',
@@ -124,7 +127,7 @@ function App() {
             variant="contained"
             color="error"
              size="small"
-            onClick={()=>handleDelete(index)}
+            onClick={()=>handleDelete(task._id)}
             startIcon={<RemoveIcon />}
           >
             Delete
