@@ -1,5 +1,5 @@
 import './App.css';
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useEffect } from 'react';
 import axios from 'axios';
 import {
@@ -29,22 +29,29 @@ function App() {
 
   const handleAddTask = () => {
   if (input.trim()) {
-    const newTask = { text: input, completed: false,date };
-    axios.post('https://todo-backend-abxd.onrender.com/newtask', newTask)
-      .then(res => setTasks([...tasks, res.data]))
-      .catch(err => console.error(err));
+    // const newTask = { text: input, completed: false,date };
+    socket.emit("newtask",{ text: input, completed: false,date});
+    socket.on("messages",(data)=>{
+      console.log(data)
+    })
+    socket.on("tasks",(data)=>{
+      setTasks(data)
+    })
+    // axios.post('https://todo-backend-abxd.onrender.com/newtask', newTask)
+    //   .then(res => setTasks([...tasks, res.data]))
+    //   .catch(err => console.error(err));
     setInput('');
   }
 };
 
-console.log(tasks)
+// console.log(tasks)
 
   const handleToggle = (_id) => {
     const indexs = tasks.findIndex(e=>e._id===_id);
      const updatedTasks = [...tasks];
     updatedTasks[indexs].completed = !updatedTasks[indexs].completed;
     const status=updatedTasks[indexs].completed
-    socket.emit("toggleEmit",{_id,status})
+    socket.emit("update",{_id,status,date})
     // axios.post('https://todo-backend-abxd.onrender.com/task', {_id,status})
     //   .then(res => console.log(res))
     //   .catch(err => console.error(err));
@@ -54,11 +61,15 @@ console.log(tasks)
   };
 
   const handleDelete=(_id)=>{
-    const newTasks=tasks.filter((each)=>each._id!==_id);
-    axios.post('https://todo-backend-abxd.onrender.com/taskid', {_id})
-      .then(res => console.log(res))
-      .catch(err => console.error(err));
-    setTasks(newTasks)
+    // const newTasks=tasks.filter((each)=>each._id!==_id);
+    socket.emit("delete",{_id,date})
+    // axios.post('https://todo-backend-abxd.onrender.com/taskid', {_id})
+    //   .then(res => console.log(res))
+    //   .catch(err => console.error(err));
+    socket.on("tasks",(data)=>{
+          setTasks(data)
+    })
+
   }
 
   const handleFilter=()=>{
@@ -73,18 +84,18 @@ console.log(tasks)
 //     return () => socket.off('receive_message');
 //   }, []);
 
-  const sendMessage = (e) => {
-      console.log(e)
-      socket.emit('send_message', { text: e });
-      setInput(e);
-  };
+  // const sendMessage = (e) => {
+  //     console.log(e)
+  //     socket.emit('send_message', { text: e });
+  //     setInput(e);
+  // };
 
   useEffect(() => {
-    socket.emit("tasksemit")
+    socket.emit("alltasks",{date})
     socket.on("tasks",(data)=>{
       setTasks(data)
     })
-  },[])
+  },[date])
 
   return (
     <>
@@ -112,7 +123,7 @@ console.log(tasks)
             label="Add task"
             variant="outlined"
             value={input}
-            onChange={(e) => sendMessage(e.target.value)}
+            onChange={(e) => setInput(e.target.value)}
           />
           <Button
             variant="contained"
