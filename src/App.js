@@ -19,6 +19,7 @@ import RemoveIcon from '@mui/icons-material/Remove';
 import TuneIcon from '@mui/icons-material/Tune';
 import Filter from './Filter.tsx';
 import { createDate } from './Helper.js';
+import socket from "./socket.js"
 
 function App() {
   const [tasks, setTasks] = useState([]);
@@ -62,12 +63,25 @@ console.log(tasks)
     setDialog(prev=>!prev)
   }
 
+useEffect(() => {
+    socket.on('receive_message', (data) => {
+      console.log(data)
+    });
 
-  useEffect(() => {
-  axios.post('https://todo-backend-abxd.onrender.com/tasks',{date})
-    .then(res => setTasks(res.data))
-    .catch(err => console.error(err));
-}, [date]);
+    return () => socket.off('receive_message');
+  }, []);
+
+  const sendMessage = (e) => {
+      console.log(e)
+      socket.emit('send_message', { text: e });
+      setInput(e);
+  };
+
+//   useEffect(() => {
+//   axios.post('https://todo-backend-abxd.onrender.com/tasks',{date})
+//     .then(res => setTasks(res.data))
+//     .catch(err => console.error(err));
+// }, [date]);
 
   return (
     <>
@@ -95,7 +109,7 @@ console.log(tasks)
             label="Add task"
             variant="outlined"
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={(e) => sendMessage(e.target.value)}
           />
           <Button
             variant="contained"
