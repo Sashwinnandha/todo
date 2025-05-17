@@ -44,11 +44,13 @@ console.log(tasks)
      const updatedTasks = [...tasks];
     updatedTasks[indexs].completed = !updatedTasks[indexs].completed;
     const status=updatedTasks[indexs].completed
-    console.log(indexs)
-    axios.post('https://todo-backend-abxd.onrender.com/task', {_id,status})
-      .then(res => console.log(res))
-      .catch(err => console.error(err));
-    setTasks(updatedTasks);
+    socket.emit("toggleEmit",{_id,status})
+    // axios.post('https://todo-backend-abxd.onrender.com/task', {_id,status})
+    //   .then(res => console.log(res))
+    //   .catch(err => console.error(err));
+    socket.on("tasks",(data)=>{
+      setTasks(data)
+    })
   };
 
   const handleDelete=(_id)=>{
@@ -63,13 +65,13 @@ console.log(tasks)
     setDialog(prev=>!prev)
   }
 
-useEffect(() => {
-    socket.on('receive_message', (data) => {
-      console.log(data)
-    });
+// useEffect(() => {
+//     socket.on('receive_message', (data) => {
+//       console.log(data)
+//     });
 
-    return () => socket.off('receive_message');
-  }, []);
+//     return () => socket.off('receive_message');
+//   }, []);
 
   const sendMessage = (e) => {
       console.log(e)
@@ -77,11 +79,12 @@ useEffect(() => {
       setInput(e);
   };
 
-//   useEffect(() => {
-//   axios.post('https://todo-backend-abxd.onrender.com/tasks',{date})
-//     .then(res => setTasks(res.data))
-//     .catch(err => console.error(err));
-// }, [date]);
+  useEffect(() => {
+    socket.emit("tasksemit")
+    socket.on("tasks",(data)=>{
+      setTasks(data)
+    })
+  },[])
 
   return (
     <>
