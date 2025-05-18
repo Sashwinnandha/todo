@@ -42,21 +42,21 @@ function App() {
 
   const handleAddTask = () => {
   if (input.trim()) {
-    // const newTask = { text: input, completed: false,date };
-    socket.emit("newtask",{ text: input, completed: false,date});
-    socket.off("tasksAdded");
-    socket.on("tasksAdded",(data)=>{
-      console.log(data)
-      showAlert(data.severity,data.summary,data.detail)
-      setTasks(data.data)
-    })
-    
-    // socket.on("tasks",(data)=>{
-    //   setTasks(data)
+    const newTask = { text: input, completed: false,date };
+    // socket.emit("newtask",{ text: input, completed: false,date});
+    // socket.off("tasksAdded");
+    // socket.on("tasksAdded",(data)=>{
+    //   console.log(data)
+    //   showAlert(data.severity,data.summary,data.detail)
+    //   setTasks(data.data)
     // })
-    // axios.post('https://todo-backend-abxd.onrender.com/newtask', newTask)
-    //   .then(res => setTasks([...tasks, res.data]))
-    //   .catch(err => console.error(err));
+    
+    // // socket.on("tasks",(data)=>{
+    // //   setTasks(data)
+    // // })
+    axios.post('https://todo-backend-abxd.onrender.com/newtask', newTask)
+      .then(res => setTasks(res.data))
+      .catch(err => console.error(err));
     setInput('');
   }
 };
@@ -73,6 +73,9 @@ function App() {
           setDate(createDate(new Date(tomorrow.setDate(tomorrow.getDate() +1))));
           break;
       }
+      default:{
+        return;
+      }
     }
 
   }
@@ -87,24 +90,27 @@ console.log(parsed.toDate()); // ✅ Reliable Date object
      const updatedTasks = [...tasks];
     updatedTasks[indexs].completed = !updatedTasks[indexs].completed;
     const status=updatedTasks[indexs].completed
-    socket.emit("update",{_id,status,date})
-    // axios.post('https://todo-backend-abxd.onrender.com/task', {_id,status})
-    //   .then(res => console.log(res))
-    //   .catch(err => console.error(err));
-    socket.on("tasks",(data)=>{
-      setTasks(data)
-    })
+    // socket.emit("update",{_id,status,date})
+    axios.post('https://todo-backend-abxd.onrender.com/task', {_id,status,date})
+      .then(res => {
+        console.log(res.data)
+        setTasks(res.data)
+  })
+      .catch(err => console.error(err));
+    // socket.on("tasks",(data)=>{
+    //   setTasks(data)
+    // })
   };
 
   const handleDelete=(_id)=>{
     // const newTasks=tasks.filter((each)=>each._id!==_id);
-    socket.emit("delete",{_id,date})
-    // axios.post('https://todo-backend-abxd.onrender.com/taskid', {_id})
-    //   .then(res => console.log(res))
-    //   .catch(err => console.error(err));
-    socket.on("tasks",(data)=>{
-          setTasks(data)
-    })
+    //socket.emit("delete",{_id,date})
+    axios.post('https://todo-backend-abxd.onrender.com/taskid', {_id,date})
+      .then(res => setTasks(res.data))
+      .catch(err => console.error(err));
+    // socket.on("tasks",(data)=>{
+    //       setTasks(data)
+    // })
 
   }
 
@@ -127,10 +133,9 @@ console.log(parsed.toDate()); // ✅ Reliable Date object
   // };
 
   useEffect(() => {
-    socket.emit("alltasks",{date})
-    socket.on("tasks",(data)=>{
-      setTasks(data)
-    })
+    axios.post('https://todo-backend-abxd.onrender.com/tasks',{date})
+    .then(res => setTasks(res.data))
+    .catch(err => console.error(err));
   },[date])
 
   return (
