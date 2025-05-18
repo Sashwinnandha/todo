@@ -1,6 +1,6 @@
 import './App.css';
 import { useState } from 'react';
-import { useEffect } from 'react';
+import { useEffect,useRef } from 'react';
 import axios from 'axios';
 import {
   Container,
@@ -16,27 +16,44 @@ import {
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import SearchIcon from '@mui/icons-material/Search';
 import TuneIcon from '@mui/icons-material/Tune';
 import Filter from './Filter.tsx';
 import { createDate } from './Helper.js';
 import socket from "./socket.js"
+import { Toast } from 'primereact/toast';
+import dayjs from 'dayjs';
 
 function App() {
   const [tasks, setTasks] = useState([]);
   const [input, setInput] = useState('');
   const [dialog,setDialog]=useState(false);
   const[date,setDate]=useState(createDate(new Date()));
+  const[msg,setMsg]=useState("");
+  const toast = useRef(null);
+
+  // console.log("count",tasks)
+
+  const showAlert=(severity,summary,detail)=>{
+    toast.current.show({ severity: severity, summary: summary, detail: detail});
+  }
 
   const handleAddTask = () => {
   if (input.trim()) {
     // const newTask = { text: input, completed: false,date };
     socket.emit("newtask",{ text: input, completed: false,date});
-    socket.on("messages",(data)=>{
+    socket.off("tasksAdded");
+    socket.on("tasksAdded",(data)=>{
       console.log(data)
+      showAlert(data.severity,data.summary,data.detail)
+      setTasks(data.data)
     })
-    socket.on("tasks",(data)=>{
-      setTasks(data)
-    })
+    
+    // socket.on("tasks",(data)=>{
+    //   setTasks(data)
+    // })
     // axios.post('https://todo-backend-abxd.onrender.com/newtask', newTask)
     //   .then(res => setTasks([...tasks, res.data]))
     //   .catch(err => console.error(err));
@@ -44,7 +61,26 @@ function App() {
   }
 };
 
-// console.log(tasks)
+  const handleDate=(direction)=>{
+    switch (direction){
+      case "left":{
+          const tomorrow = dayjs(date, 'DD-MMM-YYYY').toDate();
+          setDate(createDate(new Date(tomorrow.setDate(tomorrow.getDate() -1))));
+          break;
+      }
+      case "right":{
+          const tomorrow = dayjs(date, 'DD-MMM-YYYY').toDate();
+          setDate(createDate(new Date(tomorrow.setDate(tomorrow.getDate() +1))));
+          break;
+      }
+    }
+
+  }
+
+
+
+const parsed = dayjs(date, 'DD-MMM-YYYY');
+console.log(parsed.toDate()); // ✅ Reliable Date object
 
   const handleToggle = (_id) => {
     const indexs = tasks.findIndex(e=>e._id===_id);
@@ -99,16 +135,43 @@ function App() {
 
   return (
     <>
+    <Toast ref={toast} />
     <Container maxWidth="sm" sx={{ mt: 5 }}>
       <Paper elevation={3} sx={{ p: 3 }}>
         <Typography variant="h4" align="center" gutterBottom>
           To-Do Tracker
         </Typography>
-         <Box display="flex" sx={{justifyContent:"space-between"}} gap={2} mb={1}>
-           <Box component="section" sx={{color:"#1976d2",fontWeight:"bold"}}>
+         <Box display="flex" sx={{justifyContent:"space-around"}} gap={2} mb={1}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={()=>handleDate("left")}
+            startIcon={<ChevronLeftIcon />}
+          >
+          </Button>
+           <Box component="section" sx={{color:"#1976d2",fontWeight:"bold",fontSize:"20px",alignSelf:"center"}}>
           {date}
         </Box>
+        <Button
+            variant="contained"
+            color="primary"
+            onClick={()=>handleDate("right")}
+            startIcon={<ChevronRightIcon />}
+            disabled={date===createDate(new Date())}
+          >
+          </Button>
+          
+         </Box>
+         <Box display="flex" sx={{justifyContent:"end"}}>
           <Button
+            variant="text"
+            color="primary"
+            onClick={handleFilter}
+            startIcon={<SearchIcon />}
+          >
+            Search
+          </Button>
+           <Button
             variant="text"
             color="primary"
             onClick={handleFilter}
@@ -116,7 +179,7 @@ function App() {
           >
             Filters
           </Button>
-         </Box>
+        </Box>
         <Box display="flex" gap={2} mb={3}>
           <TextField
             fullWidth
@@ -135,6 +198,7 @@ function App() {
             Add
           </Button>
         </Box>
+       
 
         <List>
           {tasks.map((task, index) => (
